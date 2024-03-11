@@ -1,0 +1,85 @@
+
+- name: Configure Networker Virtual Edition using AVI from Rest
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    avi_password: "{{ private_ip }}"
+    input: >-
+      '{"timezone_name":"{{ nve_timezone | default('Europe/Berlin ')}}", 
+      "admin_password_os":"{{ admin_password_os }}",
+      "root_password_os":"{{ root_password_os }}",
+      "rootid_password":"{{ rootid_password }}",
+      "snmp_string":"{{ snmp_string }}",
+      "datadomain_host":"{{ datadomain_host }}",
+      "storage_path":"{{ storage_path }}",
+      "new_ddboost_user":"{{ new_ddboost_user }}",
+      "ddboost_user":"{{ ddboost_user }}",
+      "ddboost_user_pwd":"{{ ddboost_user_pwd }}",
+      "ddboost_user_pwd_cf":"{{ ddboost_user_pwd_cf }}",
+      "datadomain_sysadmin":"sysadmin",
+      "datadomain_sysadmin_pwd":"{{ datadomain_sysadmin_pwd }}",
+      "tomcat_keystore_password":"{{ tomcat_keystore_password }}",
+      "authc_admin_password":"{{ authc_admin_password }}",
+      "install_avpasswd":"false",
+      "add_datadomain_config":"{{ add_datadomain_config }}",
+      "nve_as_storage_node":"{{ nve_as_storage_node | default('false') }}"
+      }'
+
+  vars_files: 
+    - vars/nve_vars.yml
+    
+  tasks:
+
+
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have public_ip set !"
+    when: (public_ip is not defined) or (public_ip|length <= 8)
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have private_ip  set !"
+    when: (private_ip is not defined) or (private_ip|length <= 8)    
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have avi_password set !"
+    when: (avi_password is not defined) or (avi_password|length <= 8)      
+
+  - set_fact:
+      avi_ip: "{{ public_ip | default('127.0.0.1') }}" 
+      avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    when: not ansible_check_mode       
+  - name: waiting for installer api service to become ready at https://{{ public_ip }}:7543/avi/avigui.html
+    include_role:
+      name: check_avi
+    when: not ansible_check_mode       
+
+  - name: Retrieving Authentication Token for Networker Installer
+    include_role:
+      name: get_avi_token
+    vars:
+      avi_password: "{{ private_ip }}"
+    when: not ansible_check_mode       
+  - name: Getting available AVI packages
+    include_role:
+      name: get_avi_packages
+  - debug:
+      msg: "{{ input }}"
+      verbosity: 1
+    name: Input Parameters  
+  - name: Set AVI Configuration for {{ avi_endpoint }}
+    include_role:
+      name: set_avi_config
+    when: packages[0].status is defined and  packages[0].status == "ready"  
+  - name: Get AVI Messages for {{ avi_endpoint }}
+    include_role:
+      name: get_avi_messages
+    vars:
+      status: "completed"
+      retries: "100"
+      delay: "60"  
+
+ 
+      
+ 

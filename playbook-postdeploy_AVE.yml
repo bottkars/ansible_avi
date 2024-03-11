@@ -1,0 +1,92 @@
+
+- name: Configure AVE from Rest
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    avi_password: "{{ private_ip }}"
+    input: >-
+      '{"timezone_name":"{{ ave_timezone }}", 
+      "common_password":"{{ ave_password }}",
+      "use_common_password":"true",
+      "repl_password":"{{ ave_password }}",
+      "rootpass":"{{ ave_password }}",
+      "mcpass":"{{ ave_password }}",
+      "viewuserpass":"{{ ave_password }}",
+      "admin_password_os":"{{ ave_password }}",
+      "root_password_os":"{{ ave_password }}",
+      "keystore_passphrase":"{{ ave_password }}",
+      "add_datadomain_config":"{{ ave_add_dd_config }}",
+      "attach_dd_with_cert":"false",
+      "accept_eula":"true",
+      "datadomain_host":"{{ ave_dd_host }}",
+      "ddboost_user":"{{ ave_dd_boost_user }}", 
+      "ddboost_user_pwd":"{{ ave_dd_boost_user_pwd }}",
+      "ddboost_user_pwd_cf":"{{ ave_dd_boost_user_pwd }}",
+      "datadomain_sysadmin":"{{ ave_dd_sysadmin }}",
+      "datadomain_sysadmin_pwd":"{{ ave_dd_sysadmin_pwd }}",
+      "datadomain_snmp_string":"public"
+      }'
+
+  vars_files: 
+    - vars/ave_vars.yml
+    
+  tasks:
+
+
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have public_ip set !"
+    when: (public_ip is not defined) or (public_ip|length <= 8)
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have private_ip  set !"
+    when: (private_ip is not defined) or (private_ip|length <= 8)    
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have ave_password set !"
+    when: (ave_password is not defined) or (ave_password|length <= 8)      
+
+  - set_fact:
+      avi_ip: "{{ public_ip | default('127.0.0.1') }}" 
+      avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    when: not ansible_check_mode       
+  - name: wait for api service to become ready at https://{{ public_ip }}
+    include_role:
+      name: check_avi
+#    vars:
+#      my_avi_ip: "{{ avi_ip }}" 
+    when: not ansible_check_mode       
+
+  - name: Get AVI TOken
+    include_role:
+      name: get_avi_token
+    vars:
+      avi_password: "{{ private_ip }}"
+      retry: 10
+      wait: 30
+    when: not ansible_check_mode       
+ 
+  - name: Get AVI Packages
+    include_role:
+      name: get_avi_packages
+ 
+  - debug:
+      msg: "{{ input }}"
+  - name: SET AVI Config
+    include_role:
+      name: set_avi_config
+  - name: Get AVI Messages
+    include_role:
+      name: get_avi_messages
+    vars:
+      status: "COMPLETED"
+      retries: "100"
+      delay: "60"
+      progress: 98  
+
+
+ 
+      
+ 

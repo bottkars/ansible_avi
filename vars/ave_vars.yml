@@ -1,0 +1,11 @@
+public_ip: "{{ lookup('env','AVE_PUBLIC_IP') }}"
+private_ip: "{{ lookup('env','AVE_PRIVATE_IP') }}"
+avi_ip: "{{ lookup('env','AVE_PRIVATE_IP') }}"
+ave_password: "Change_Me12345_"
+ave_add_dd_config: "false"
+ave_dd_host: "ddhost"
+ave_dd_boost_user: aveddboost
+ave_dd_boost_user_pwd: "Change_Me12345_"
+ave_dd_sysadmin: "sysadmin"
+ave_dd_sysadmin_pwd: "Change_Me12345_"
+ave_timezone: "{{ lookup('env','AVE_TIMEZONE') }}"

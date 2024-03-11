@@ -1,0 +1,22 @@
+---
+- name: Get Token
+  uri:
+    method: POST
+    url: "{{ avi_endpoint }}security/login"
+    body:
+      username: root
+      password: "{{ avi_password }}"
+    body_format: json  
+    status_code: 200,405,401
+    validate_certs: false
+  register: result
+  until: result.set_cookie is defined
+  when: not ansible_check_mode 
+  retries: "{{ retry }}"
+  delay: "{{ wait }}"        
+- set_fact:
+    token: "{{ result.set_cookie }}" 
+  when: not ansible_check_mode         
+- debug: 
+    msg: "{{ result.json }}"
+  when: not ansible_check_mode        

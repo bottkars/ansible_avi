@@ -1,0 +1,52 @@
+
+- name: Configure AVE from Rest
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    avi_password: "{{ private_ip }}"
+  vars_files: 
+    - vars/ave_vars.yml
+    
+  tasks:
+
+
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have public_ip set !"
+    when: (public_ip is not defined) or (public_ip|length <= 8)
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have private_ip  set !"
+    when: (private_ip is not defined) or (private_ip|length <= 8)    
+  - name: Checking Required Variables
+    fail: 
+      msg: "We do not have ave_password set !"
+    when: (ave_password is not defined) or (ave_password|length <= 8)      
+
+  - set_fact:
+      avi_ip: "{{ public_ip | default('127.0.0.1') }}" 
+      avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    when: not ansible_check_mode       
+ # - name: Get AVI TOken
+ #   include_role:
+ #     name: get_avi_token
+ #   vars:
+ #     avi_password: "{{ ave_password }}"
+#      avi_endpoint: "{{ avi_endpoint }}"
+ #     retry: 10
+ #   when: not ansible_check_mode       
+ 
+  - name: Get AVI Messages
+    include_role:
+      name: get_avi_messages
+    vars:
+      status: "COMPLETED"
+      retries: "3"
+      delay: "30"
+      progress: 98  
+
+ 
+      
+ 

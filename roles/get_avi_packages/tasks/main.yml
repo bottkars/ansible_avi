@@ -1,0 +1,21 @@
+---
+
+- name: Get Packages
+  uri:
+    method: GET
+    url: "{{ avi_endpoint }}packages"
+    headers:
+      Cookie: "{{ token }}"
+    body_format: json  
+    status_code: 200,405,401
+    validate_certs: false
+  register: result
+  retries: 30
+  delay: 10    
+  until: result.json.packages is defined # [0].status == "ready"
+- set_fact:
+    packages: "{{ result.json.packages }}" 
+  when: not ansible_check_mode         
+- debug: 
+    msg: "{{ packages }}"
+  when: not ansible_check_mode 

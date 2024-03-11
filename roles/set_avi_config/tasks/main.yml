@@ -1,0 +1,40 @@
+---
+- name: Set-AVI Config
+  shell: 'curl -ks {{ avi_endpoint }}packages/install/{{ result.json.packages[0].title }} \
+      -XPOST \
+      -H "content-type: multipart/form-data"  \
+      -b "{{ token }}" \
+      -F userinput=" " \
+      -F input={{ input }}'
+#  uri:
+#    method: POST
+#    url: "{{ avi_endpoint }}packages/install/{{ packages[0].title }}"
+#    headers:
+#      Cookie: "{{ token }}"
+##      Content-Type: multipart/form-data
+#    body_format: form-multipart     
+#    # body_format: json 
+#    body: "{{ data }}" 
+#    status_code: 200,405,401
+#    validate_certs: false
+#  register: result
+#  retries: 30
+#  delay: 10    
+#  until: result.json.packages[0].status == "ready"
+#- debug: 
+#    msg: "{{ result }}"
+#  when: not ansible_check_mode 
+
+
+
+
+
+
+#  shell: 'curl -ks {{ avi_endpoint }}packages/install/{{ packages[0].title }} \
+#      -XPOST \
+#      -H "content-type: multipart/form-data"  \
+#      -b "{{ result.set_cookie }}" \
+#      -F userinput="" \
+#      -F input={{ input }}'
+#    uri:
+

@@ -1,0 +1,15 @@
+- name: Check AVI Service
+  uri:
+    url: "https://{{ avi_ip }}:7543/avi/avigui.html"
+    status_code: 200
+    validate_certs: false
+  retries: 30
+  delay: 10
+  register: result
+  until: result.status is defined and ( result.status == 200 or result.status == 405 )
+  when: not ansible_check_mode      
+- debug: 
+    msg: "{{ result }}"
+    verbosity: 1
+  name: Debug AVI Status    
+  when: not ansible_check_mode          

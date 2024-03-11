@@ -1,0 +1,22 @@
+- name: Get AVI {{ status }} Message with {{ retries }} retries
+  uri:
+    method: GET
+    url: "{{ avi_endpoint }}messages"
+    headers:
+      Cookie: "{{ token }}"
+    body_format: json  
+    status_code: 200,405,401,-1
+    validate_certs: false
+  register: result
+  retries: "{{ retries}}"
+  delay: "{{ delay }}"  
+  until: (result.json.messages[-1] is defined and (result.json.messages[-1].progress | int) >= progress  )  or (result.json is defined and ( result.json.totalCount| int) == 0) or (result.json.messages[-1] is defined and result.json.messages[-1].status == status)  or (result.json.messages[-1] is defined and  result.json.messages[-1].status == "failed" ) or result.status == 401
+- debug: 
+    msg: "{{ result.json.messages[-1] }}"
+    verbosity: 0
+  when: result.json.messages[-1] is defined
+- debug: 
+    msg: "{{ result }}"
+    verbosity: 2 
+- set_fact: 
+    messages: "{{ result }}"       

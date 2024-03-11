@@ -1,0 +1,35 @@
+
+- name: Configure system using AVI from Rest
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars:
+    avi_endpoint: "https://{{ public_ip }}:7543/avi/service/api/"
+    avi_password: "{{ private_ip }}"
+  vars_files: 
+    - vars/nve_vars.yml
+    
+  tasks:
+
+
+
+  - name: Get AVI TOken
+    include_role:
+      name: get_avi_token
+    vars:
+      avi_password: "{{ private_ip }}"
+#      avi_endpoint: "{{ avi_endpoint }}"
+    when: not ansible_check_mode       
+
+
+  - name: Get AVI Messages for {{ avi_endpoint }}
+    include_role:
+      name: get_avi_messages
+    vars:
+      status: "failed"
+      retries: "100"
+      delay: "60"  
+
+ 
+      
+ 
